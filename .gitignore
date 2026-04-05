@@ -1,0 +1,81 @@
+# ----------------------------
+# 🐍 Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# ----------------------------
+# 🔐 Environment Variables
+# ----------------------------
+.env
+.env.*
+*.env
+
+# ----------------------------
+# 📦 Dependency / Build
+# ----------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ----------------------------
+# 🧪 Testing / Coverage
+# ----------------------------
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# ----------------------------
+# 📄 Logs
+# ----------------------------
+*.log
+logs/
+
+# ----------------------------
+# 🗂️ OS / Editor files
+# ----------------------------
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# ----------------------------
+# 📊 Cached Data (IMPORTANT for your case)
+# ----------------------------
+data/financials/
+data/transcripts/
+*.json
+
+# If you want to KEEP sample JSON, comment above and use:
+# data/**/*.json
+# !data/sample.json
+
+# ----------------------------
+# 🚀 Uvicorn / FastAPI
+# ----------------------------
+*.pid
+*.sock
+
+# ----------------------------
+# 🐳 Docker (optional)
+# ----------------------------
+docker-compose.override.yml
+
+# ----------------------------
+# 📦 Misc
+# ----------------------------
+*.sqlite3
+*.db
