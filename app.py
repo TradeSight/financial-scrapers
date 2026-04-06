@@ -3,6 +3,7 @@ from typing import Optional
 import uvicorn
 from pathlib import Path
 
+
 # Import your existing earnings scraper
 from scrapers.earnings_scraper import AlphaStreetScraper
 
@@ -10,6 +11,18 @@ from scrapers.earnings_scraper import AlphaStreetScraper
 from scrapers.financial_scraper import YahooFinanceScraper
 
 import logging
+
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor()
+
+async def run_scraper_in_thread(scraper, ticker, force_scrape=False):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        executor,
+        lambda: scraper.scrape_financial_reports(ticker, force_scrape)
+    )
 
 logging.basicConfig(
     level=logging.INFO,
@@ -199,31 +212,17 @@ async def search_transcripts(
 
 # ==================== New Financial Report Endpoints ====================
 
+
+
 @app.get("/financials/{ticker}")
-async def get_financial_reports(
-    ticker: str,
-    force_scrape: bool = Query(False, description="Force fresh scrape")
-):
-    """
-    Get financial reports (income statement, balance sheet, cash flow)
-    
-    Example: /financials/AAPL
-    Example: /financials/MSFT?force_scrape=true
-    """
+async def get_financial_reports(ticker: str, force_scrape: bool = False):
     try:
-        result = await financial_scraper.scrape_financial_reports(ticker, force_scrape)
-        
-        return {
-            "success": True,
-            "type": "financial_reports",
-            "ticker": ticker.upper(),
-            "cached": not force_scrape and Path(f"data/financials/{ticker.upper()}.json").exists(),
-            "data": result
-        }
+        result = await run_scraper_in_thread(financial_scraper, ticker, force_scrape)
+        return {"success": True, "data": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to scrape financials: {str(e)}")
-
-
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
 @app.get("/financials/{ticker}/{statement}")
 async def get_financial_statement(
     ticker: str,
