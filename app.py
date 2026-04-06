@@ -9,6 +9,15 @@ from scrapers.earnings_scraper import AlphaStreetScraper
 # Import the new financial scraper
 from scrapers.financial_scraper import YahooFinanceScraper
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="Combined Financial API", description="Earnings Calls + Financial Reports")
 
 # Initialize scrapers
@@ -308,6 +317,7 @@ async def get_company_data(
 
 @app.get("/health")
 async def health_check():
+    logger.info("API HIT → /health")
     return {
         "status": "healthy",
         "services": ["earnings_calls", "financial_reports"],
