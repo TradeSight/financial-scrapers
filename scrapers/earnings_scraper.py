@@ -357,7 +357,77 @@ class AlphaStreetScraper:
                 'year': year
             }
 
+    def list_transcripts(self, ticker: str, year: int, quarter: Optional[str] = None) -> List[Dict]:
+        """
+        Fetch list of transcripts for a given ticker, optionally filtered by quarter & year
+        """
+        results = []
 
+        try:
+            # Build URL
+            if quarter:
+                quarter_clean = quarter.upper()
+                if not quarter_clean.startswith("Q"):
+                    quarter_clean = f"Q{quarter_clean}"
+                quarter_param = f"{quarter_clean}-{year}"
+                url = f"{self.base_url}/transcripts/?ticker={ticker.lower()}&quarter={quarter_param}"
+            else:
+                url = f"{self.base_url}/transcripts/?ticker={ticker.lower()}"
+
+            response = requests.get(url, headers=self.headers, timeout=30)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            transcript_rows = soup.find_all("article", class_="transcript-row")
+
+            for row in transcript_rows:
+                try:
+                    ticker_elem = row.find("a", class_="ticker-link")
+                    quarter_elem = row.find("span", class_="quarter-badge")
+                    title_elem = row.find("h3", class_="transcript-title")
+
+                    if not (ticker_elem and quarter_elem and title_elem):
+                        continue
+
+                    row_ticker = ticker_elem.get_text(strip=True).replace("$", "")
+                    row_quarter_text = quarter_elem.get_text(strip=True)
+
+                    link_tag = title_elem.find("a")
+                    href = link_tag.get("href") if link_tag else None
+
+                    title = title_elem.get_text(strip=True)
+
+                    # Extract quarter + year
+                    match = re.search(r"(Q[1-4])\s+(\d{4})", row_quarter_text)
+
+                    row_quarter = match.group(1) if match else None
+                    row_year = int(match.group(2)) if match else None
+
+                    # Apply filters (extra safety)
+                    if quarter and row_quarter != quarter_clean:
+                        continue
+                    if year and row_year != year:
+                        continue
+
+                    results.append({
+                        "company": title.split(" Q")[0],
+                        "ticker": row_ticker,
+                        "quarter": row_quarter,
+                        "year": row_year,
+                        "title": title,
+                        "url": href
+                    })
+
+                except Exception as e:
+                    print(f"Error parsing row: {e}")
+                    continue
+
+            return results
+
+        except Exception as e:
+            print(f"Error fetching transcripts list: {e}")
+            return []
 scraper = AlphaStreetScraper()
 
 

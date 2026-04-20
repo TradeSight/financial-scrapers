@@ -71,6 +71,93 @@ class YahooFinanceScraper:
                     result[col_name][idx_name] = value
         return result
 
+    def get_market_data(self, ticker: str, force_scrape: bool = False):
+        ticker = ticker.upper()
+        cache_path = self.cache_dir / f"{ticker}_market.json"
+
+        # Cache (1 hour)
+        if not force_scrape and cache_path.exists():
+            cache_data = json.loads(cache_path.read_text())
+            cache_age = (
+                datetime.now() - datetime.fromisoformat(cache_data["fetched_at"])
+            ).total_seconds()
+
+            if cache_age < 3600:
+                print(f"📂 Using cached market data for {ticker}")
+                return cache_data
+
+        try:
+            stock = yf.Ticker(ticker, session=self.session)
+
+            hist = stock.history(period="1y")
+            # info = stock.info
+            try:
+                info = stock.info
+            except Exception:
+                info = {}
+            earnings = stock.earnings
+
+            result = {
+                "ticker": ticker,
+                "fetched_at": datetime.now().isoformat(),
+                "stockPrices": self._format_prices(hist),
+                "marketData": self._extract_market_data(info),
+                "earningsData": self._format_earnings(earnings),
+            }
+
+            cache_path.write_text(json.dumps(result, indent=2, default=str))
+            return result
+
+        except Exception as e:
+            print(f"❌ Error fetching market data: {e}")
+            return {"error": str(e)}
+
+    def _format_prices(self, df):
+        if df is None or df.empty:
+            return []
+
+        df = df.tail(20)
+
+        return [
+            {
+                "date": str(index.date()),
+                "open": row["Open"],
+                "high": row["High"],
+                "low": row["Low"],
+                "close": row["Close"],
+            }
+            for index, row in df.iterrows()
+        ]
+
+    def _extract_market_data(self, info):
+        if not info:
+            return {}
+
+        return {
+            "marketCap": info.get("marketCap"),
+            "beta": info.get("beta"),
+            "peRatio": info.get("trailingPE"),
+            "dividendYield": info.get("dividendYield"),
+            "eps": info.get("trailingEps"),
+            "currentPrice": info.get("currentPrice"),
+        }
+    
+    def _format_earnings(self, df):
+        if df is None or df.empty:
+            return []
+
+        df = df.tail(4)
+
+        return [
+            {
+                "year": str(index),
+                "revenue": row.get("Revenue"),
+                "earnings": row.get("Earnings"),
+            }
+            for index, row in df.iterrows()
+        ]
+    
+
 
 # For bulk downloads
 def download_multiple_stocks(tickers, period="1y"):
@@ -85,6 +172,8 @@ def get_stock_info(ticker: str):
     session = requests.Session(impersonate="chrome")
     stock = yf.Ticker(ticker.upper(), session=session)
     return stock.info
+
+
 
 
 # Example usage

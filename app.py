@@ -3,6 +3,9 @@ from typing import Optional
 import uvicorn
 from pathlib import Path
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 # Import your existing earnings scraper
 from scrapers.earnings_scraper import AlphaStreetScraper
@@ -24,6 +27,13 @@ async def run_scraper_in_thread(scraper, ticker, force_scrape=False):
         lambda: scraper.scrape_financial_reports(ticker, force_scrape)
     )
 
+async def run_market_data_in_thread(scraper, ticker, force_scrape=False):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        executor,
+        lambda: scraper.get_market_data(ticker, force_scrape)
+    )
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
@@ -32,6 +42,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Combined Financial API", description="Earnings Calls + Financial Reports")
+
+
+origins = [
+    "http://localhost:3000",  # Next.js frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # or ["*"] for dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Initialize scrapers
 earnings_scraper = AlphaStreetScraper()
@@ -207,7 +231,49 @@ async def search_transcripts(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/transcripts")
+async def list_transcripts(
+    ticker: str = Query(..., description="Stock ticker symbol (e.g., AAPL)"),
+    year: Optional[int] = Query(None, description="Year (e.g., 2026)"),
+    quarter: Optional[str] = Query(None, description="Quarter (Q1, Q2, Q3, Q4)")
+):
+    """
+    Get list of available transcripts for a ticker
+    
+    Examples:
+    /transcripts?ticker=AAPL
+    /transcripts?ticker=AAPL&year=2026
+    /transcripts?ticker=AAPL&year=2026&quarter=Q1
+    """
+    try:
+        transcripts = earnings_scraper.list_transcripts(
+            ticker=ticker,
+            year=year,
+            quarter=quarter
+        )
 
+        if not transcripts:
+            return {
+                "success": False,
+                "message": "No transcripts found",
+                "ticker": ticker.upper(),
+                "year": year,
+                "quarter": quarter,
+                "count": 0,
+                "data": []
+            }
+
+        return {
+            "success": True,
+            "ticker": ticker.upper(),
+            "year": year,
+            "quarter": quarter,
+            "count": len(transcripts),
+            "data": transcripts
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== New Financial Report Endpoints ====================
@@ -221,6 +287,34 @@ async def get_financial_reports(ticker: str, force_scrape: bool = False):
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/market-data/{ticker}")
+async def get_market_data(ticker: str, force_scrape: bool = False):
+    """
+    Get stock prices + key metrics + earnings (Yahoo Finance)
+
+    Example:
+    /market-data/AAPL
+    /market-data/MS?force_scrape=true
+    """
+    try:
+        result = await run_market_data_in_thread(
+            financial_scraper, ticker, force_scrape
+        )
+
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        return {
+            "success": True,
+            "ticker": ticker.upper(),
+            "data": result
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     
     
 @app.get("/financials/{ticker}/{statement}")
