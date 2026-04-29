@@ -1,20 +1,20 @@
 
 ---
 
-# 📊 Financial Data Platform (Scrapers + API)
+#  Financial Data Platform (Scrapers + API)
 
 A **production-ready FastAPI backend** that aggregates and serves:
 
-* 📞 Earnings call transcripts (AlphaStreet)
-* 📑 Financial statements (Yahoo Finance)
-* 📈 Market data (prices, key metrics, earnings)
-* 🔗 Unified company-level APIs
+*  Earnings call transcripts (AlphaStreet)
+*  Financial statements (Yahoo Finance)
+*  Market data (prices, key metrics, earnings)
+*  Unified company-level APIs
 
 Designed for **data-intensive systems**, **AI pipelines (RAG/LLMs)**, and **financial analytics platforms**.
 
 ---
 
-## 🚀 Why This Project Matters
+## Why This Project Matters
 
 Most financial data sources are:
 
@@ -31,7 +31,7 @@ This project solves that by:
 
 ---
 
-## 🧠 Key Engineering Highlights
+##  Key Engineering Highlights
 
 ### 1. Structured Transcript Extraction
 
@@ -71,7 +71,7 @@ This project solves that by:
 
 ---
 
-## 🏗️ System Design
+## System Design
 
 ```
 Client (Frontend / AI Service)
@@ -95,7 +95,7 @@ Structured JSON     Structured JSON
 
 ---
 
-## ⚙️ Tech Stack
+##  Tech Stack
 
 | Layer       | Tech                               |
 | ----------- | ---------------------------------- |
@@ -108,7 +108,7 @@ Structured JSON     Structured JSON
 
 ---
 
-## 📡 Core APIs
+##  Core APIs
 
 ### Earnings Transcripts
 
@@ -139,7 +139,7 @@ GET /company/{ticker}
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 .
@@ -153,7 +153,7 @@ GET /company/{ticker}
 
 ---
 
-## ▶️ Getting Started
+##  Getting Started
 
 ```bash
 git clone https://github.com/TradeSight/financial-scrapers.git
@@ -171,16 +171,16 @@ http://localhost:8000/docs
 
 ---
 
-## ⚡ Performance Optimizations
+##  Performance Optimizations
 
-* 🚀 Async request handling (FastAPI)
-* 🧵 Thread pool for blocking scrapers
-* 📁 Intelligent caching layer
-* 📉 Reduced API latency + external dependency load
+*  Async request handling (FastAPI)
+*  Thread pool for blocking scrapers
+*  Intelligent caching layer
+*  Reduced API latency + external dependency load
 
 ---
 
-## 💡 Real-World Use Cases
+##  Real-World Use Cases
 
 * AI-powered financial assistants (RAG systems)
 * Earnings call summarization engines
@@ -190,7 +190,7 @@ http://localhost:8000/docs
 
 ---
 
-## 🔍 Example Output
+##  Example Output
 
 ```json
 {
@@ -206,7 +206,7 @@ http://localhost:8000/docs
 
 ---
 
-## 📌 Future Improvements
+##  Future Improvements
 
 * Redis-based caching
 * Background workers (Celery / RabbitMQ)
@@ -216,7 +216,7 @@ http://localhost:8000/docs
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 **Vishal Singh**
 Full-Stack Developer | Backend & AI Systems
@@ -226,15 +226,5 @@ Full-Stack Developer | Backend & AI Systems
 
 ---
 
-## ⭐ Final Note
-
-This project reflects:
-
-* Strong backend fundamentals
-* Real-world data handling
-* Performance-aware system design
-* Readiness for AI/LLM integrations
-
----
 
 
